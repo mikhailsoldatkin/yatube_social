@@ -203,13 +203,13 @@ class PostViewsTests(TestCase):
         """Главная страница кэшируется."""
         cache.clear()
         post = Post.objects.get(pk=1)
-        response = self.guest_client.get(reverse('posts:index'))
+        self.guest_client.get(reverse('posts:index'))
         cache_index = cache.get(make_template_fragment_key('index_page'))
         post.delete()
-        response = self.guest_client.get(reverse('posts:index'))
+        self.guest_client.get(reverse('posts:index'))
         self.assertIn(post.text, cache_index)
         cache.clear()
-        response = self.guest_client.get(reverse('posts:index'))
+        self.guest_client.get(reverse('posts:index'))
         cache_index = cache.get(make_template_fragment_key('index_page'))
         self.assertNotIn(post.text, cache_index)
 
@@ -219,20 +219,17 @@ class PostViewsTests(TestCase):
         author = self.user_author
         user = self.user
         count_followers = author.following.count()
-        response = self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={
-                'username': author}))
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': author}))
         self.assertEqual(author.following.count(), count_followers + 1)
-        self.assertTrue(Follow.objects.filter(
-            user=user, author=self.user_author).exists())
-
+        self.assertTrue(
+            Follow.objects.filter(user=user, author=self.user_author).exists())
         count_followers = author.following.count()
-        response = self.authorized_client.get(
-            reverse('posts:profile_unfollow', kwargs={
-                'username': author}))
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow', kwargs={'username': author}))
         self.assertEqual(author.following.count(), count_followers - 1)
-        self.assertFalse(Follow.objects.filter(
-            user=user, author=author).exists())
+        self.assertFalse(
+            Follow.objects.filter(user=user, author=author).exists())
 
     def test_new_post_is_on_favorites_page(self):
         """Новая запись пользователя появляется в ленте тех, кто на него
@@ -240,14 +237,12 @@ class PostViewsTests(TestCase):
         author = self.user_author
         post = Post.objects.create(text='Проверка подписки',
                                    author=author)
-        response = self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={
-                'username': author}))
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': author}))
         response = self.authorized_client.get(reverse('posts:follow_index'))
         self.assertIn(post, response.context['page_obj'])
-        response = self.authorized_client.get(
-            reverse('posts:profile_unfollow', kwargs={
-                'username': author}))
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow', kwargs={'username': author}))
         response = self.authorized_client.get(reverse('posts:follow_index'))
         self.assertNotIn(post, response.context['page_obj'])
 

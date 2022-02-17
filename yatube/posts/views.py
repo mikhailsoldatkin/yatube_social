@@ -5,7 +5,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .forms import PostForm, CommentForm
 from .models import Post, Group, User, Follow
 
-
 POSTS_PER_PAGE = 10
 
 
@@ -53,7 +52,6 @@ def profile(request, username):
         'following': following,
         'user': user
     }
-
     return render(request, 'posts/profile.html', context)
 
 

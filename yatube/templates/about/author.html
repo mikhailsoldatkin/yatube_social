@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Об авторе проекта{% endblock %}
+
+{% block content %}
+
+<h1>Привет, я автор!</h1>
+<p>
+  Меня зовут Михаил, я являюсь студентом Яндекс.Практикума по специальности «Python-разработчик». Это мой первый сайт.
+</p>
+    <img src="{% static 'img/author_photo.jpg' %}" width="300" height="300" class="rounded" alt="author photo">
+{% endblock %}

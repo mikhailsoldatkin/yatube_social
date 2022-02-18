@@ -154,6 +154,7 @@ class PostFormTests(TestCase):
             'post_id': self.post.pk}))
         self.assertEqual(Comment.objects.count(), comments_count + 1)
         self.assertEqual(last_comment.text, form_data['text'])
+        self.assertEqual(last_comment.author, self.user)
 
     def test_guest_cant_leave_comments(self):
         """Неавторизованный пользователь не может оставлять комментарии."""

@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ..models import Group, Post, User
+from ..models import Group, Post, User, Comment, Follow
 
 
 class PostModelTests(TestCase):
@@ -8,6 +8,7 @@ class PostModelTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='test_user')
+        cls.user_author = User.objects.create_user(username='test_author')
         cls.group = Group.objects.create(
             title='Название тестовой группы',
             slug='test-slug',
@@ -16,6 +17,15 @@ class PostModelTests(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый текст для проверки',
+        )
+        cls.comment = Comment.objects.create(
+            post=cls.post,
+            author=cls.user,
+            text='Текст комментария'
+        )
+        cls.follow = Follow.objects.create(
+            user=cls.user,
+            author=cls.user_author,
         )
 
     def test_models_have_correct_object_names(self):
@@ -70,3 +80,33 @@ class PostModelTests(TestCase):
             with self.subTest(field=field):
                 self.assertEqual(
                     group._meta.get_field(field).verbose_name, expected_value)
+
+    def test_verbose_names_comment(self):
+        """Проверяем, что verbose_name полей модели Comment совпадает с
+        ожидаемым."""
+        comment = PostModelTests.comment
+        field_verbose_name = {
+            'post': 'Пост',
+            'author': 'Автор',
+            'text': 'Текст комментария',
+            'created': 'Дата добавления',
+        }
+        for field, expected_value in field_verbose_name.items():
+            with self.subTest(field=field):
+                self.assertEqual(
+                    comment._meta.get_field(field).verbose_name,
+                    expected_value)
+
+    def test_verbose_names_follow(self):
+        """Проверяем, что verbose_name полей модели Follow совпадает с
+        ожидаемым."""
+        follow = PostModelTests.follow
+        field_verbose_name = {
+            'user': 'Подписчик',
+            'author': 'Автор',
+        }
+        for field, expected_value in field_verbose_name.items():
+            with self.subTest(field=field):
+                self.assertEqual(
+                    follow._meta.get_field(field).verbose_name,
+                    expected_value)

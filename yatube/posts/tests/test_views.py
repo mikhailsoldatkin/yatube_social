@@ -10,7 +10,8 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
 from ..forms import PostForm
-from ..models import Group, Post, User, Comment, Follow
+from ..models import Group, Post, User, Comment
+from ..views import POSTS_PER_PAGE
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -75,6 +76,11 @@ class PostViewsTests(TestCase):
             reverse('posts:post_edit', kwargs={
                 'post_id': self.post.pk}): 'posts/create_post.html',
             reverse('posts:post_create'): 'posts/create_post.html',
+            reverse('posts:follow_index'): 'posts/follow.html',
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user}): 'posts/follow.html',
+            reverse('posts:profile_unfollow',
+                    kwargs={'username': self.user}): 'posts/index.html',
         }
         for page, template in pages_templates.items():
             with self.subTest(page=page):
@@ -213,24 +219,6 @@ class PostViewsTests(TestCase):
         cache_index = cache.get(make_template_fragment_key('index_page'))
         self.assertNotIn(post.text, cache_index)
 
-    def test_authorized_user_can_subscribe_to_another_user(self):
-        """Авторизованный пользователь может подписываться на других
-        пользователей и удалять их из подписок."""
-        author = self.user_author
-        user = self.user
-        count_followers = author.following.count()
-        self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={'username': author}))
-        self.assertEqual(author.following.count(), count_followers + 1)
-        self.assertTrue(
-            Follow.objects.filter(user=user, author=self.user_author).exists())
-        count_followers = author.following.count()
-        self.authorized_client.get(
-            reverse('posts:profile_unfollow', kwargs={'username': author}))
-        self.assertEqual(author.following.count(), count_followers - 1)
-        self.assertFalse(
-            Follow.objects.filter(user=user, author=author).exists())
-
     def test_new_post_is_on_favorites_page(self):
         """Новая запись пользователя появляется в ленте тех, кто на него
         подписан и не появляется в ленте тех, кто не подписан."""
@@ -257,19 +245,19 @@ class PaginatorViewsTest(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
-        cls.POSTS_PER_PAGE = 10
 
     def setUp(self):
         self.guest_client = Client()
         self.text = 'Текст '
         self.author = self.user
+        self.posts_created = 13
         bulk_list = [
             Post(
                 text=self.text + str(i),
                 author=self.author,
                 group=self.group,
             )
-            for i in range(self.POSTS_PER_PAGE + 3)
+            for i in range(self.posts_created)
         ]
         self.posts = Post.objects.bulk_create(bulk_list)
 
@@ -278,13 +266,14 @@ class PaginatorViewsTest(TestCase):
         10."""
         response = self.guest_client.get(reverse('posts:index'))
         self.assertEqual(len(response.context['page_obj']),
-                         self.POSTS_PER_PAGE)
+                         POSTS_PER_PAGE)
 
     def test_index_second_page_contains_three_posts(self):
         """Для главной страницы количество постов на второй странице равно
         3."""
         response = self.guest_client.get(reverse('posts:index') + '?page=2')
-        self.assertEqual(len(response.context['page_obj']), 3)
+        self.assertEqual(len(response.context['page_obj']),
+                         self.posts_created - POSTS_PER_PAGE)
 
     def test_group_list_first_page_contains_ten_posts(self):
         """Для страницы группы количество постов на первой странице равно
@@ -292,23 +281,25 @@ class PaginatorViewsTest(TestCase):
         response = self.guest_client.get(
             reverse('posts:group_list', kwargs={'slug': self.group.slug}))
         self.assertEqual(len(response.context['page_obj']),
-                         self.POSTS_PER_PAGE)
+                         POSTS_PER_PAGE)
 
     def test_group_list_second_page_contains_three_posts(self):
         """Для страницы группы количество постов на второй странице равно 3."""
         response = self.guest_client.get(reverse('posts:group_list', kwargs={
             'slug': self.group.slug}) + '?page=2')
-        self.assertEqual(len(response.context['page_obj']), 3)
+        self.assertEqual(len(response.context['page_obj']),
+                         self.posts_created - POSTS_PER_PAGE)
 
     def test_profile_first_page_contains_ten_posts(self):
         """Для профайла количество постов на первой странице равно 10."""
         response = self.guest_client.get(
             reverse('posts:profile', kwargs={'username': self.user}))
         self.assertEqual(len(response.context['page_obj']),
-                         self.POSTS_PER_PAGE)
+                         POSTS_PER_PAGE)
 
     def test_profile_second_page_contains_three_posts(self):
         """Для профайла количество постов на второй странице равно 3."""
         response = self.guest_client.get(reverse('posts:profile', kwargs={
             'username': self.user}) + '?page=2')
-        self.assertEqual(len(response.context['page_obj']), 3)
+        self.assertEqual(len(response.context['page_obj']),
+                         self.posts_created - POSTS_PER_PAGE)

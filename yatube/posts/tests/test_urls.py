@@ -24,6 +24,9 @@ class PostURLTests(TestCase):
         cls.urls_authorized = {
             f'/posts/{cls.post.pk}/edit/': 'posts/create_post.html',
             '/create/': 'posts/create_post.html',
+            '/follow/': 'posts/follow.html',
+            f'/profile/{cls.user}/follow/': 'posts/follow.html',
+            f'/profile/{cls.user}/unfollow/': 'posts/index.html',
         }
         cls.urls_guest = {
             '/': 'posts/index.html',
@@ -49,15 +52,16 @@ class PostURLTests(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_edit_urls_exists_at_desired_location_authorized(self):
-        """Страницы /edit и /create доступны авторизованному пользователю."""
+        """Страницы /edit, /create, /follow, username/follow,
+        username/unfollow доступны авторизованному пользователю."""
         for page in self.urls_authorized:
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_edit_urls_redirect_guest(self):
-        """Неавторизованный пользователь получает редирект со страниц /edit
-        и /create."""
+        """Неавторизованный пользователь получает редирект со страниц /edit,
+        /create, /follow, username/follow, username/unfollow."""
         for page in self.urls_authorized:
             with self.subTest(page=page):
                 response = self.guest_client.get(page)

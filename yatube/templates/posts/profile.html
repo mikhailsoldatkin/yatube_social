@@ -6,7 +6,7 @@
 {% load thumbnail %}
 
   <h1>Все посты пользователя  {{ author.username }}</h1>
-  <h3>Всего постов:  {{ posts_count }}</h3>    <!-- page_obj|length -->
+  <h3>Всего постов:  {{ page_obj.paginator.object_list|length }}</h3>
 
   {% if user != author %}
   {% if following %}

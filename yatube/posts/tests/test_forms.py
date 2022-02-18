@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
-from ..models import Post, User, Group, Comment
+from ..models import Post, User, Group, Comment, Follow
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -17,6 +17,7 @@ class PostFormTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='test_user')
+        cls.user_author = User.objects.create_user(username='test_author')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -136,10 +137,6 @@ class PostFormTests(TestCase):
         self.assertEqual(last_created_post.group.pk, form_data['group'])
         self.assertEqual(last_created_post.image,
                          f'posts/{form_data["image"]}')
-        self.assertTrue(Post.objects.filter(
-            text=form_data['text'],
-            group=form_data['group'],
-            image='posts/post_image.gif').exists())
 
     def test_authorized_can_leave_comments(self):
         """Авторизованный пользователь может оставлять комментарии."""
@@ -157,3 +154,47 @@ class PostFormTests(TestCase):
             'post_id': self.post.pk}))
         self.assertEqual(Comment.objects.count(), comments_count + 1)
         self.assertEqual(last_comment.text, form_data['text'])
+
+    def test_guest_cant_leave_comments(self):
+        """Неавторизованный пользователь не может оставлять комментарии."""
+        comments_count = Comment.objects.count()
+        form_data = {
+            'text': 'Текст комментария',
+        }
+        response = self.guest_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': self.post.pk}),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), comments_count)
+        self.assertRedirects(response, reverse(
+            'users:login') + f'?next=/posts/{self.post.pk}/comment/')
+
+    def test_authorized_user_can_subscribe_to_another_user(self):
+        """Авторизованный пользователь может подписываться на других
+        пользователей и отписываться от них."""
+        author = self.user_author
+        user = self.user
+        count_followers = author.following.count()
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': author}))
+        self.assertEqual(author.following.count(), count_followers + 1)
+        self.assertTrue(
+            Follow.objects.filter(user=user, author=author).exists())
+        count_followers = author.following.count()
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow', kwargs={'username': author}))
+        self.assertEqual(author.following.count(), count_followers - 1)
+        self.assertFalse(
+            Follow.objects.filter(user=user, author=author).exists())
+
+    def test_guest_user_cant_subscribe_to_another_user(self):
+        """Неавторизованный пользователь не может подписываться на других
+        пользователей."""
+        author = self.user_author
+        count_followers = author.following.count()
+        response = self.guest_client.get(
+            reverse('posts:profile_follow', kwargs={'username': author}))
+        self.assertEqual(author.following.count(), count_followers)
+        self.assertRedirects(response, reverse(
+            'users:login') + f'?next=/profile/{author}/follow/')

@@ -91,14 +91,10 @@ class PostViewsTests(TestCase):
         """Шаблон index сформирован с правильным контекстом."""
         response = self.guest_client.get(reverse('posts:index'))
         post = response.context.get('page_obj')[0]
-        post_author = post.author
-        post_text = post.text
-        post_group = post.group
-        post_pub_date = post.pub_date
-        self.assertEqual(post_author, self.post.author)
-        self.assertEqual(post_text, self.post.text)
-        self.assertEqual(post_group, self.post.group)
-        self.assertEqual(post_pub_date, self.post.pub_date)
+        self.assertEqual(post.author, self.post.author)
+        self.assertEqual(post.text, self.post.text)
+        self.assertEqual(post.group, self.post.group)
+        self.assertEqual(post.pub_date, self.post.pub_date)
 
     def test_group_list_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""

@@ -253,9 +253,9 @@ class PaginatorViewsTest(TestCase):
         self.posts_created = 13
         bulk_list = [
             Post(
-                text=self.text + str(i),
+                text=f'Пост №{i}',
                 author=self.author,
-                group=self.group,
+                group=self.group
             )
             for i in range(self.posts_created)
         ]

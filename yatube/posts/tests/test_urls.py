@@ -25,7 +25,7 @@ class PostURLTests(TestCase):
             f'/posts/{cls.post.pk}/edit/': 'posts/create_post.html',
             '/create/': 'posts/create_post.html',
             '/follow/': 'posts/follow.html',
-            f'/profile/{cls.user}/follow/': 'posts/follow.html',
+            f'/profile/{cls.user}/follow/': 'posts/profile.html',
             f'/profile/{cls.user}/unfollow/': 'posts/index.html',
         }
         cls.urls_guest = {

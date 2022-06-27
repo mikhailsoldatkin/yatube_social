@@ -5,7 +5,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .forms import PostForm, CommentForm
 from .models import Post, Group, User, Follow
 
-
 POSTS_PER_PAGE = 10
 
 
@@ -60,11 +59,19 @@ def post_detail(request, post_id):
     posts_count = author.posts.count()
     form = CommentForm(request.POST or None)
     comments = post.comments.all()
+
+    user = request.user
+    following = user.is_authenticated
+    if following:
+        following = author.following.filter(user=user).exists()
+
     context = {
         'post': post,
         'posts_count': posts_count,
         'comments': comments,
-        'form': form
+        'form': form,
+        'author': author,
+        'following': following,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -87,13 +94,15 @@ def post_edit(request, post_id):
     is_edit = True
     form = PostForm(request.POST or None, files=request.FILES or None,
                     instance=post)
+
+    if form.is_valid():
+        form.save(commit=True)
+        return redirect('posts:post_detail', post_id=post_id)
+
     context = {
         'form': form,
         'is_edit': is_edit,
     }
-    if form.is_valid():
-        form.save(commit=True)
-        return redirect('posts:post_detail', post_id=post_id)
 
     return render(request, 'posts/create_post.html', context)
 
@@ -130,12 +139,13 @@ def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     if user != author:
         Follow.objects.get_or_create(user=user, author=author)
-    return follow_index(request)
+    return profile(request, username)
 
 
 @login_required
 def profile_unfollow(request, username):
     user = request.user
     author = get_object_or_404(User, username=username)
+    # if Follow.objects.filter(author=author, user=user).exists():
     Follow.objects.filter(author=author, user=user).delete()
     return index(request)

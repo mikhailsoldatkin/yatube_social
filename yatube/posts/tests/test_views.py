@@ -78,7 +78,7 @@ class PostViewsTests(TestCase):
             reverse('posts:post_create'): 'posts/create_post.html',
             reverse('posts:follow_index'): 'posts/follow.html',
             reverse('posts:profile_follow',
-                    kwargs={'username': self.user}): 'posts/follow.html',
+                    kwargs={'username': self.user}): 'posts/profile.html',
             reverse('posts:profile_unfollow',
                     kwargs={'username': self.user}): 'posts/index.html',
         }
@@ -205,14 +205,16 @@ class PostViewsTests(TestCase):
         """Главная страница кэшируется."""
         cache.clear()
         post = Post.objects.get(pk=1)
-        self.guest_client.get(reverse('posts:index'))
-        cache_index = cache.get(make_template_fragment_key('index_page'))
+        response = self.guest_client.get(reverse('posts:index'))
+        cache_index = cache.get(make_template_fragment_key('index_page', [
+            response.context['page_obj'].number]))
         post.delete()
         self.guest_client.get(reverse('posts:index'))
         self.assertIn(post.text, cache_index)
         cache.clear()
-        self.guest_client.get(reverse('posts:index'))
-        cache_index = cache.get(make_template_fragment_key('index_page'))
+        response = self.guest_client.get(reverse('posts:index'))
+        cache_index = cache.get(make_template_fragment_key('index_page', [
+            response.context['page_obj'].number]))
         self.assertNotIn(post.text, cache_index)
 
     def test_new_post_is_on_favorites_page(self):

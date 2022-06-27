@@ -5,8 +5,9 @@
 {% block content %}
 
   <h1>Последние обновления на сайте</h1>
+
   {% load cache %}
-  {% cache 20 index_page %} <!-- cache 20 index_page page_obj.number -->
+  {% cache 20 index_page page_obj.number %}
 
   {% include 'posts/includes/switcher.html' %}
 
@@ -14,10 +15,7 @@
 
     {% include 'posts/includes/post.html' %}
 
-    {% if post.group %}
-      <a href= "{% url 'posts:group_list' post.group.slug %}">все записи группы {{ post.group }}</a>
-    {% endif %}
-    {% if not forloop.last %}<hr>{% endif %}
+  {% if not forloop.last %}<hr>{% endif %}
   {% endfor %}
   {% endcache %}
 

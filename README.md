@@ -11,9 +11,9 @@ Python, Django, Git, Django ORM, Unittest, SQLite, HTML
 - Клонировать репозиторий и перейти в него в командной строке:
 
 ```
-git clone https://github.com/mikhailsoldatkin/api_yamdb.git
+git clone https://github.com/mikhailsoldatkin/yatube_social.git
 
-cd api_yamdb
+cd yatube_social
 ```
 
 - Создать и активировать виртуальное окружение:
@@ -36,7 +36,7 @@ pip install -r requirements.txt
 - Перейти в рабочую папку и выполнить миграции:
 
 ```
-cd api_yamdb
+cd yatube
 
 python manage.py migrate
 ```

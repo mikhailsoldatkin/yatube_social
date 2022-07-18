@@ -25,6 +25,11 @@ source venv/bin/activate (Mac, Linux)
 source venv/scripts/activate (Windows)
 ```
 
+- В директории yatube файл example.env переименовать в .env и заполнить своими данными:
+```
+SECRET_KEY = 'your secret key'
+```
+
 - Установить зависимости из файла requirements.txt:
 
 ```

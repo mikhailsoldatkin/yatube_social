@@ -1,15 +1,12 @@
 import os
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'fgk61t_qu)7g3e00z)q7ju&(##@-g)fwbia%2^ciso#7l*z33h'
+SECRET_KEY = os.getenv(key='SECRET_KEY', default='keep_the_secret')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['178.154.195.215', '127.0.0.1', 'localhost']
-
 
 SHELL_PLUS = "ipython"
 
@@ -20,7 +17,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'django_extensions',
     'posts.apps.PostsConfig',
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',

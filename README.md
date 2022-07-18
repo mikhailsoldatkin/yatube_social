@@ -4,7 +4,7 @@
 
 ### Технологии:
 
-Python, Django, Simple JWT, Git, Django ORM, Unittest, SQLite, HTML
+Python, Django, Git, Django ORM, Unittest, SQLite, HTML
 
 ### Запуск проекта:
 
